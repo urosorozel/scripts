@@ -1,0 +1,18 @@
+---
+- hosts: utility_all
+  tasks:
+
+  - name: Assign service users with service project and admin role
+    shell: |
+      . ~/openrc;openstack role add --user "{{item}}" --project service admin
+    with_items:
+      - "{{swift_service_user_name}}"
+      - "{{nova_service_user_name}}"
+      - "{{keystone_service_user_name}}"
+      - "{{glance_service_user_name}}"
+      - "{{ironic_service_user_name}}"
+      - "{{heat_service_user_name}}"
+      - "{{neutron_service_user_name}}"
+      - "{{dispersion_service_user_name}}"
+      - "{{keystone_admin_user_name}}"
+
