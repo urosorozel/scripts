@@ -1,8 +1,10 @@
 name: Build fclones ARM binaries
 
 on:
-  pull_request:
+  push:
     branches: [master]
+    paths:
+      - '.github/workflows/build-fclones-arm.yml'
   workflow_dispatch:
 
 permissions:
