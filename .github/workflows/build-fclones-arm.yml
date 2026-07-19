@@ -1,0 +1,61 @@
+name: Build fclones ARM binaries
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - '.github/workflows/build-fclones-arm.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - aarch64-unknown-linux-musl
+          - armv7-unknown-linux-musleabihf
+
+    steps:
+      - name: Check out helper repository
+        uses: actions/checkout@v4
+
+      - name: Check out fclones v0.35.0
+        uses: actions/checkout@v4
+        with:
+          repository: pkolaczk/fclones
+          ref: v0.35.0
+          path: fclones-src
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cross
+        run: cargo install cross --git https://github.com/cross-rs/cross
+
+      - name: Build static binary
+        working-directory: fclones-src
+        run: cross build --release --locked --target "${{ matrix.target }}"
+
+      - name: Package binary
+        run: |
+          set -euxo pipefail
+          target="${{ matrix.target }}"
+          mkdir -p package
+          cp "fclones-src/target/${target}/release/fclones" package/fclones
+          chmod +x package/fclones
+          file package/fclones
+          sha256sum package/fclones > package/SHA256SUMS
+          tar -C package -czf "fclones-v0.35.0-${target}.tar.gz" fclones SHA256SUMS
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: fclones-v0.35.0-${{ matrix.target }}
+          path: fclones-v0.35.0-${{ matrix.target }}.tar.gz
+          if-no-files-found: error
+          retention-days: 30
