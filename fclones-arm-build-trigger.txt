@@ -1,0 +1,1 @@
+Build fclones v0.35.0 static binaries for ARM64 and ARMv7.
